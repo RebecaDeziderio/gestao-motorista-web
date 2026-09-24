@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão Financeira para Motoristas Uber/99</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 480px;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #1a1a1a;
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            color: #444;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #000000;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #000000;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #333333;
+        }
+
+        .result-card {
+            margin-top: 24px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #000000;
+            display: none;
+        }
+
+        .result-card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: #1a1a1a;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .result-row.highlight {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #2e7d32;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Gestão para Motoristas</h1>
+    <p class="subtitle">Calcule seu Lucro Líquido Real e Custo por KM</p>
+
+    <form id="calcForm">
+        <div class="form-group">
+            <label for="faturamento">Faturamento Bruto da Semana (R$)</label>
+            <input type="number" step="0.01" id="faturamento" placeholder="Ex: 2000.00" required>
+        </div>
+
+        <div class="form-group">
+            <label for="km">Total de Quilômetros Rodados (km)</label>
+            <input type="number" step="0.1" id="km" placeholder="Ex: 169" required>
+        </div>
+
+        <div class="form-group">
+            <label for="gastos">Gastos Diretos - Gasolina/Alimentação (R$)</label>
+            <input type="number" step="0.01" id="gastos" placeholder="Ex: 400.00" required>
+        </div>
+
+        <button type="button" onclick="calcular()">Calcular Lucro Real</button>
+    </form>
+
+    <div class="result-card" id="resultado">
+        <h2>Resumo do Cálculo</h2>
+        <div class="result-row">
+            <span>Faturamento Bruto:</span>
+            <span id="resFaturamento">R$ 0,00</span>
+        </div>
+        <div class="result-row">
+            <span>Gastos Diretos:</span>
+            <span id="resGastos">R$ 0,00</span>
+        </div>
+        <div class="result-row">
+            <span>Depreciação (R$ 0,15/km):</span>
+            <span id="resDepreciacao">R$ 0,00</span>
+        </div>
+        <div class="result-row">
+            <span>Custo Total Operacional:</span>
+            <span id="resCustoTotal">R$ 0,00</span>
+        </div>
+        <div class="result-row highlight">
+            <span>LUCRO LÍQUIDO REAL:</span>
+            <span id="resLucroReal">R$ 0,00</span>
+        </div>
+        <div class="result-row">
+            <span>Custo Real por KM:</span>
+            <span id="resCustoKm">R$ 0,00/km</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    function calcular() {
+        const faturamento = parseFloat(document.getElementById('faturamento').value) || 0;
+        const km = parseFloat(document.getElementById('km').value) || 0;
+        const gastos = parseFloat(document.getElementById('gastos').value) || 0;
+
+        // Regra de Negócio
+        const depreciacao = km * 0.15;
+        const custoTotal = gastos + depreciacao;
+        const lucroLiquido = faturamento - custoTotal;
+        const custoPorKm = km > 0 ? custoTotal / km : 0;
+
+        // Formatador para Real (R$)
+        const fmt = val => val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        document.getElementById('resFaturamento').innerText = fmt(faturamento);
+        document.getElementById('resGastos').innerText = fmt(gastos);
+        document.getElementById('resDepreciacao').innerText = fmt(depreciacao);
+        document.getElementById('resCustoTotal').innerText = fmt(custoTotal);
+        document.getElementById('resLucroReal').innerText = fmt(lucroLiquido);
+        document.getElementById('resCustoKm').innerText = fmt(custoPorKm) + '/km';
+
+        document.getElementById('resultado').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
